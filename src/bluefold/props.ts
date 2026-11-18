@@ -113,7 +113,8 @@ export function createPullTab(color = '#f0c674'): Mesh {
     emissiveIntensity: 0.6,
     roughness: 0.4,
   });
-  const tab = new Mesh(new CapsuleGeometry(0.009, 0.03, 6, 12), mat);
+  // Generous size: tracked fingertips jitter by a centimetre or so.
+  const tab = new Mesh(new CapsuleGeometry(0.012, 0.036, 6, 12), mat);
   tab.rotation.z = Math.PI / 2;
   tab.castShadow = true;
   return tab;

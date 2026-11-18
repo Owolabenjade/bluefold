@@ -399,7 +399,8 @@ export class BluefoldSystem extends createSystem({
     this.pendingTie = null;
     if (!pt || this.phase !== 'fold' || this.foldAnim) return;
     if (this.clock - this.lastGrabEnd < 0.3) return;
-    if (this.queries.heldFold.entities.size > 0 || this.queries.heldLift.entities.size > 0) return;
+    const q = this.queries;
+    if (q.heldFold.entities.size + q.heldLift.entities.size + q.heldClamp.entities.size + q.heldUnfold.entities.size > 0) return;
     const local = this.clothGroup.worldToLocal(pt.point.clone());
     const outline = outlineAfter(this.recipe.folds);
     const p: Vec2 = { x: local.x, z: local.z };
