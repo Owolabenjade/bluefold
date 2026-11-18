@@ -10,6 +10,7 @@ import {
   PlaneGeometry,
   Quaternion,
   RayInteractable,
+  SphereGeometry,
   Vector3,
   VisibilityState,
   WebGLRenderTarget,
@@ -92,6 +93,10 @@ export class BluefoldSystem extends createSystem({
   private unfoldEntity!: Entity;
   private label!: { mesh: Mesh; draw: (s: string, sub?: string) => void };
   private targetFrame!: ReturnType<typeof createFrame>;
+  private galleryGroup!: Group;
+  private hintDots: Mesh[] = [];
+  private idle = 0;
+  private galleryItems: { group: Group; target: WebGLRenderTarget }[] = [];
 
   private phase: Phase = 'fold';
   private recipe: Recipe = emptyRecipe();
@@ -199,6 +204,23 @@ export class BluefoldSystem extends createSystem({
     this.targetFrame.group.rotation.x = -0.12;
     this.workspace.add(this.targetFrame.group);
 
+    // Guide dots: a short comet that traces the next gesture when the player hesitates.
+    const dotGeo = new SphereGeometry(0.0095, 14, 10);
+    for (let i = 0; i < 4; i++) {
+      const m = new Mesh(
+        dotGeo,
+        new MeshBasicMaterial({ color: 0xdfe8ff, transparent: true, opacity: 0.95 - i * 0.2, depthWrite: false, depthTest: false }),
+      );
+      m.visible = false;
+      m.renderOrder = 10;
+      this.workspace.add(m);
+      this.hintDots.push(m);
+    }
+
+    this.galleryGroup = new Group();
+    this.galleryGroup.name = 'gallery';
+    this.workspace.add(this.galleryGroup);
+
     // Queries: grab start / end.
     this.queries.heldFold.subscribe('qualify', (e) => this.onFoldGrab(e));
     this.queries.heldFold.subscribe('disqualify', (e) => this.onFoldRelease(e));
@@ -232,12 +254,15 @@ export class BluefoldSystem extends createSystem({
     );
 
     this.baker.bake(this.renderer, this.targetTarget, this.target, 1);
+    this.rebuildGallery();
+    this.updateTargetLabel();
     this.startNewCloth();
   }
 
   // ---------------------------------------------------------------- setup
 
   private startNewCloth(): void {
+    if (import.meta.env.DEV) console.log('[bluefold] new cloth');
     this.recipe = emptyRecipe();
     this.oxidation = 1;
     this.phase = 'fold';
@@ -344,6 +369,7 @@ export class BluefoldSystem extends createSystem({
   }
 
   private commitPendingTie(): void {
+    this.idle = 0;
     const pt = this.pendingTie;
     this.pendingTie = null;
     if (!pt || this.phase !== 'fold' || this.foldAnim) return;
@@ -366,6 +392,7 @@ export class BluefoldSystem extends createSystem({
   }
 
   private onFoldGrab(e: Entity): void {
+    this.idle = 0;
     if (this.phase !== 'fold' || this.foldAnim) return;
     const slot = e.getValue(FoldHandle, 'slot') as number;
     const option = this.handleSlots[slot];
@@ -383,6 +410,8 @@ export class BluefoldSystem extends createSystem({
   }
 
   private onLiftGrab(): void {
+    this.idle = 0;
+    if (import.meta.env.DEV) console.log('[bluefold] lift grab', this.phase);
     if (this.phase !== 'fold' || this.foldAnim) return;
     const obj = this.liftEntity.object3D!;
     obj.getWorldPosition(this.v1);
@@ -409,6 +438,8 @@ export class BluefoldSystem extends createSystem({
   private dipIntoVat = false;
 
   private onUnfoldGrab(): void {
+    this.idle = 0;
+    if (import.meta.env.DEV) console.log('[bluefold] unfold grab', this.phase, this.recipe.dips, this.oxidation.toFixed(2));
     if (this.phase !== 'fold' || this.recipe.dips < 1 || this.oxidation < 0.95) return;
     this.unfoldEntity.object3D!.getWorldPosition(this.unfold.start);
     this.unfold.held = true;
@@ -465,6 +496,57 @@ export class BluefoldSystem extends createSystem({
       this.needsBake = false;
     }
     this.pulseHandles();
+    this.updateHint(dt);
+  }
+
+  /** Trace the next expected gesture with guide dots after a few idle seconds. */
+  private updateHint(dt: number): void {
+    this.idle += dt;
+    const r = this.recipe;
+    let show = false;
+    const a = this.v1;
+    const b = this.v2;
+    let height = 0.08;
+    if (this.phase === 'fold' && !this.foldAnim && this.queries.heldLift.entities.size === 0) {
+      if (r.folds.length === 0 && r.ties.length === 0 && this.idle > 2.5 && this.handleSlots[0]) {
+        const opt = this.handleSlots[0];
+        const f = opt.fold;
+        const top = ClothMesh.topHeight(0) + 0.01;
+        a.set(opt.handle.x, top, opt.handle.z);
+        b.set(opt.handle.x - 2 * opt.reach * f.nx, top, opt.handle.z - 2 * opt.reach * f.nz);
+        height = opt.reach;
+        show = true;
+      } else if (r.dips === 0 && (r.folds.length > 0 || r.ties.length > 0) && this.idle > 6) {
+        const loop = this.liftEntity.object3D!;
+        if (loop.visible) {
+          a.copy(loop.position);
+          this.workspace.worldToLocal(a);
+          b.copy(this.vatGroup.position);
+          b.y = VAT_HEIGHT + 0.02;
+          height = 0.12;
+          show = true;
+        }
+      } else if (r.dips > 0 && this.oxidation >= 1 && this.idle > 5) {
+        const tab = this.unfoldEntity.object3D!;
+        if (tab.visible) {
+          a.copy(tab.position);
+          this.workspace.worldToLocal(a);
+          b.set(a.x, a.y + 0.1, a.z + 0.12);
+          height = 0.03;
+          show = true;
+        }
+      }
+    }
+    const cycle = 2.2;
+    const s0 = ((this.idle % cycle) / cycle) * 1.25;
+    for (let i = 0; i < this.hintDots.length; i++) {
+      const dot = this.hintDots[i];
+      const s = s0 - i * 0.05;
+      dot.visible = show && s >= 0 && s <= 1;
+      if (!dot.visible) continue;
+      dot.position.lerpVectors(a, b, s);
+      dot.position.y += Math.sin(Math.PI * s) * height;
+    }
   }
 
   private updateFold(dt: number): void {
@@ -601,11 +683,13 @@ export class BluefoldSystem extends createSystem({
     this.cloth.update(this.recipe.folds, 0, -1, 0);
     const score = this.baker.similarity(this.renderer, this.recipe, this.target);
     const pct = Math.round(score * 100);
+    if (import.meta.env.DEV) console.log('[bluefold] reveal score', pct, JSON.stringify(this.recipe));
     const stars = score >= 0.86 ? 3 : score >= 0.72 ? 2 : score >= 0.55 ? 1 : 0;
     this.progress = recordResult(this.progress, todayKey(), cloneRecipe(this.recipe), pct, stars);
     const starText = '◆'.repeat(stars) + '◇'.repeat(3 - stars);
     this.label.draw(`${pct}% match  ${starText}`, `Streak ${this.progress.streak} day${this.progress.streak === 1 ? '' : 's'}`);
     this.label.mesh.visible = true;
+    this.updateTargetLabel();
     this.sfx.reveal(stars);
     this.refreshHandles();
   }
@@ -616,7 +700,40 @@ export class BluefoldSystem extends createSystem({
     const k = Math.min(1, this.revealTime / 1.2);
     this.clothGroup.position.set(0, 0.12 * easeInOut(k), -0.02 * k);
     this.clothGroup.rotation.set(-1.1 * easeInOut(k), 0, 0);
-    if (this.revealTime > 7) this.startNewCloth();
+    if (this.revealTime > 9) {
+      this.rebuildGallery();
+      this.startNewCloth();
+    }
+  }
+
+  // ---------------------------------------------------------------- gallery
+
+  private updateTargetLabel(): void {
+    const today = this.progress.days[todayKey()];
+    const sub = today ? `Best today ${today.best}%  ·  streak ${this.progress.streak}` : 'Recreate it with folds and ties';
+    this.targetFrame.setLabel("Today's cloth", sub);
+  }
+
+  /** Small frames beside today's cloth, newest nearest, from saved progress. */
+  private rebuildGallery(): void {
+    for (const item of this.galleryItems) {
+      this.galleryGroup.remove(item.group);
+      item.target.dispose();
+    }
+    this.galleryItems = [];
+    const items = this.progress.gallery.slice(0, 6);
+    items.forEach((entry, i) => {
+      const target = PatternBaker.colorTarget(256);
+      this.baker.bake(this.renderer, target, entry.recipe, 1);
+      const frame = createFrame(0.11, `${entry.score}%`);
+      (frame.face.material as MeshBasicMaterial).map = target.texture;
+      const side = i % 2 === 0 ? 1 : -1;
+      const col = Math.floor(i / 2);
+      frame.group.position.set(side * (0.27 + col * 0.15), 0.43 - (col % 2) * 0.0, -0.4);
+      frame.group.rotation.set(-0.12, -side * (0.18 + col * 0.12), 0);
+      this.galleryGroup.add(frame.group);
+      this.galleryItems.push({ group: frame.group, target });
+    });
   }
 
   // ---------------------------------------------------------------- layout

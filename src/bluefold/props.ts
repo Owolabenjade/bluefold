@@ -151,7 +151,7 @@ export function createTieKnot(): Group {
 }
 
 /** A framed square that shows a cloth texture (today's target, gallery). */
-export function createFrame(size: number, label: string): { group: Group; face: Mesh; setLabel: (s: string) => void } {
+export function createFrame(size: number, label: string): { group: Group; face: Mesh; setLabel: (s: string, sub?: string) => void } {
   const group = new Group();
   const back = new Mesh(
     new BoxGeometry(size + 0.03, size + 0.03, 0.012),
@@ -161,8 +161,9 @@ export function createFrame(size: number, label: string): { group: Group; face: 
   group.add(back);
   const face = new Mesh(new PlaneGeometry(size, size), new MeshBasicMaterial({ color: 0xffffff }));
   group.add(face);
-  const { mesh: labelMesh, draw } = createLabel(size, 0.05);
-  labelMesh.position.y = -size / 2 - 0.045;
+  const labelH = Math.max(0.028, size * 0.2);
+  const { mesh: labelMesh, draw } = createLabel(size, labelH);
+  labelMesh.position.y = -size / 2 - labelH * 0.75;
   group.add(labelMesh);
   draw(label);
   return { group, face, setLabel: draw };
