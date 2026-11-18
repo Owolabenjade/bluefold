@@ -66,3 +66,12 @@ Method: file `Videos\Captures\Bluefold 2026-11-18 10-31-55.mp4` (duration read f
 Result: Local file 1:40, 92.3 MB; recording window 09:31:55Z to 09:33:35Z matches the scripted run log 09:31:52Z to 09:33:37Z. oEmbed returns HTTP 200 with title "Bluefold", so the video is public.
 Label: OBSERVED
 Limits: Claude did not watch the video; the human reviewed it. Audio content not checked.
+
+## E-008: Meta VR Start membership active
+Date (UTC): 2026-11-18T10:31Z
+Commit: 8b8355e
+Environment: Human's browser, communityforums.atmeta.com profile page
+Method: Screenshot shared by the human of their forum profile
+Result: Profile shows the flair "Start Member" and "Member since November 18, 2026".
+Label: OBSERVED (screenshot)
+Limits: Seen through the human's screenshot, not checked independently.
