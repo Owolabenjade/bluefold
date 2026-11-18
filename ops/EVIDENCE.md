@@ -21,3 +21,21 @@ Method: repository searches for the competition name, "hands-first Quest", "iwsd
 Result: About 75 public repos describe entries. Close matches: palm-mirror light puzzle 3 (zouhirmahjoubi/palmlight, zouhirmahjoubi/beam, W1nnnd/prism-desk); hand shadows 4; origami 2 (yy5652-hash/foldlings, pbhatti/origami_webxr); ceiling stars 2 (Evin-Saju/north-by-night, DelcastApe/Cosmoweaves-MR); music in the room 3; focus desks 6+. Resist-dye, indigo, tie-dye or shibori in XR: 0.
 Label: OBSERVED
 Limits: Public GitHub repos only; most entries are private or unpublished (6,817 registrants). The Devpost gallery is not published yet.
+
+## E-003: Demo path runs end to end in the IWER emulator with hand input
+Date (UTC): 2026-11-18T00:50Z
+Commit: 68cdc8c (gallery and hints added in 8548a8a)
+Environment: IWSDK dev server, managed Chromium, IWER 2.8 metaQuest3 device, sunlit_living_room synthetic environment, hand input mode, headset seated at the dining table (-0.95, 1.18, 2.05)
+Method: scripted with `npx @iwsdk/cli xr run-sequence` / `xr select` (scratch flow.sh): grab fold-tab-0 and lay it across; ray-pinch the bundle; grab lift-loop and release over the vat; grab unfold-tab and pull; screenshots after each step
+Result: Workspace placed on the detected `table` plane at y 0.74 (log "[bluefold] placed on plane -0.95 0.74 1.63 head 1.18"); fold completed (half-width bundle, new tabs); tie knot placed (log "cloth pointerdown fold false -1.051,0.747,1.554"); bundle dipped and dyed indigo with a white tie sunburst; unfold produced the reveal (log "[bluefold] reveal score 83"); finished cloths appear in the gallery after reload.
+Label: OBSERVED
+Limits: Emulated hands and room only. Not run on a Quest headset, so real hand-tracking jitter, Quest Browser plane permissions and frame rate are unverified. Audio was not heard.
+
+## E-004: Public build on GitHub Pages loads and renders
+Date (UTC): 2026-11-18T08:44Z
+Commit: ab0567c
+Environment: GitHub Actions (ubuntu-latest, Node 22) build; desktop Chrome on Windows 11 (no XR device)
+Method: Pages workflow run 44268746961; `curl` of https://owolabenjade.github.io/bluefold/ and its assets; opened the URL in Chrome and read the console
+Result: Workflow success. Page 200; main bundle 200 (2,432,920 bytes); ui/welcome.uikitml 200; scenes/main.iwsdk.scene.json 200. Chrome renders the welcome panel, today's cloth and the workspace; console shows no errors (one ANGLE shader precision warning).
+Label: OBSERVED
+Limits: Desktop only; the immersive session on a Quest Browser is not verified.
