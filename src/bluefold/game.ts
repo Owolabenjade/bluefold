@@ -48,6 +48,7 @@ import {
   VAT_HEIGHT,
   VAT_RADIUS,
 } from './props.js';
+import { installFilmCaptions } from './film.js';
 import { loadProgress, recordResult, Progress } from './progress.js';
 
 type Phase = 'fold' | 'dipping' | 'unfolding' | 'reveal';
@@ -204,13 +205,13 @@ export class BluefoldSystem extends createSystem({
     this.clampEntity.addComponent(OneHandGrabbable, { rotate: false, translate: true });
 
     this.label = createLabel(0.3, 0.06);
-    this.label.mesh.position.set(0, 0.24, -0.28);
+    this.label.mesh.position.set(0, 0.315, 0.0);
     this.workspace.add(this.label.mesh);
     this.label.mesh.visible = false;
 
     this.targetFrame = createFrame(0.3, "Today's cloth");
     (this.targetFrame.face.material as MeshBasicMaterial).map = this.targetTarget.texture;
-    this.targetFrame.group.position.set(0, 0.42, -0.42);
+    this.targetFrame.group.position.set(0, 0.52, -0.42);
     this.targetFrame.group.rotation.x = -0.12;
     this.workspace.add(this.targetFrame.group);
 
@@ -267,6 +268,7 @@ export class BluefoldSystem extends createSystem({
       }),
     );
 
+    installFilmCaptions(this.camera);
     this.baker.bake(this.renderer, this.targetTarget, this.target, 1);
     this.rebuildGallery();
     this.updateTargetLabel();
@@ -777,7 +779,7 @@ export class BluefoldSystem extends createSystem({
       (frame.face.material as MeshBasicMaterial).map = target.texture;
       const side = i % 2 === 0 ? 1 : -1;
       const col = Math.floor(i / 2);
-      frame.group.position.set(side * (0.27 + col * 0.15), 0.43 - (col % 2) * 0.0, -0.4);
+      frame.group.position.set(side * (0.27 + col * 0.15), 0.53, -0.4);
       frame.group.rotation.set(-0.12, -side * (0.18 + col * 0.12), 0);
       this.galleryGroup.add(frame.group);
       this.galleryItems.push({ group: frame.group, target });

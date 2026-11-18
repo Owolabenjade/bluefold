@@ -192,14 +192,23 @@ export function createLabel(width: number, height: number): { mesh: Mesh; draw: 
     ctx.fillStyle = '#f3efe6';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    // Shrink the font until the line fits inside the strip.
+    const fit = (text: string, weight: number, size: number) => {
+      let px = Math.round(size);
+      ctx.font = `${weight} ${px}px system-ui, sans-serif`;
+      while (px > 8 && ctx.measureText(text).width > canvas.width * 0.92) {
+        px -= 1;
+        ctx.font = `${weight} ${px}px system-ui, sans-serif`;
+      }
+    };
     if (sub) {
-      ctx.font = `600 ${Math.round(canvas.height * 0.36)}px system-ui, sans-serif`;
+      fit(s, 600, canvas.height * 0.36);
       ctx.fillText(s, canvas.width / 2, canvas.height * 0.36);
-      ctx.font = `400 ${Math.round(canvas.height * 0.24)}px system-ui, sans-serif`;
+      fit(sub, 400, canvas.height * 0.24);
       ctx.fillStyle = '#c9d3ee';
       ctx.fillText(sub, canvas.width / 2, canvas.height * 0.74);
     } else {
-      ctx.font = `600 ${Math.round(canvas.height * 0.5)}px system-ui, sans-serif`;
+      fit(s, 600, canvas.height * 0.5);
       ctx.fillText(s, canvas.width / 2, canvas.height * 0.54);
     }
     tex.needsUpdate = true;
