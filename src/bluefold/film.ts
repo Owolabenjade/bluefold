@@ -3,7 +3,8 @@ import { createLabel } from './props.js';
 
 /**
  * Dev-only caption strip for recording the demo video in the emulator.
- * Number keys show a caption, 0 hides it. Never active in production builds.
+ * Captions advance on game events (never backwards), so recording needs no
+ * keyboard or window interaction. Inactive in production builds.
  */
 const CAPTIONS: [string, string?][] = [
   ['Bluefold', 'An indigo resist-dye workshop on your real table. Hands only.'],
@@ -17,25 +18,64 @@ const CAPTIONS: [string, string?][] = [
   ['owolabenjade.github.io/bluefold', 'Open it in the Quest Browser.'],
 ];
 
-export function installFilmCaptions(camera: Object3D): void {
-  if (!import.meta.env.DEV) return;
+export type FilmCue = 'start' | 'fold' | 'tie' | 'lift' | 'unfold' | 'reveal';
+const CUE_INDEX: Record<FilmCue, number> = { start: 0, fold: 2, tie: 3, lift: 4, unfold: 5, reveal: 6 };
+
+export interface Film {
+  cue(c: FilmCue): void;
+  update(dt: number): void;
+}
+
+const noop: Film = { cue: () => {}, update: () => {} };
+
+export function installFilmCaptions(camera: Object3D): Film {
+  if (!import.meta.env.DEV) return noop;
   const label = createLabel(0.46, 0.07);
   label.mesh.position.set(0, -0.235, -0.62);
   label.mesh.renderOrder = 20;
-  const mat = label.mesh.material as { depthTest?: boolean };
-  mat.depthTest = false;
+  (label.mesh.material as { depthTest?: boolean }).depthTest = false;
   label.mesh.visible = false;
   camera.add(label.mesh);
-  window.addEventListener('keydown', (e) => {
-    if (e.key === '0') {
+
+  let index = -1;
+  let timer = 0;
+  // Captions that follow on their own after a delay: [from index, seconds, to index].
+  const chains: [number, number, number][] = [
+    [0, 4, 1],
+    [6, 5, 7],
+    [7, 5.5, 8],
+    [8, 5, -1],
+  ];
+  const show = (i: number) => {
+    index = i;
+    timer = 0;
+    if (i < 0) {
       label.mesh.visible = false;
       return;
     }
-    const i = Number(e.key) - 1;
-    if (Number.isInteger(i) && i >= 0 && i < CAPTIONS.length) {
-      const [title, sub] = CAPTIONS[i];
-      label.draw(title, sub);
-      label.mesh.visible = true;
-    }
-  });
+    const [title, sub] = CAPTIONS[i];
+    label.draw(title, sub);
+    label.mesh.visible = true;
+  };
+  return {
+    cue(c) {
+      const i = CUE_INDEX[c];
+      if (i > index) show(i);
+    },
+    update(dt) {
+      if (index < 0) return;
+      timer += dt;
+      for (const [from, secs, to] of chains) {
+        if (from === index && timer > secs) {
+          if (to < 0) {
+            label.mesh.visible = false;
+            index = 99; // finished
+          } else {
+            show(to);
+          }
+          break;
+        }
+      }
+    },
+  };
 }

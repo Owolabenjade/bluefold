@@ -48,7 +48,7 @@ import {
   VAT_HEIGHT,
   VAT_RADIUS,
 } from './props.js';
-import { installFilmCaptions } from './film.js';
+import { Film, installFilmCaptions } from './film.js';
 import { loadProgress, recordResult, Progress } from './progress.js';
 
 type Phase = 'fold' | 'dipping' | 'unfolding' | 'reveal';
@@ -99,6 +99,8 @@ export class BluefoldSystem extends createSystem({
   private targetFrame!: ReturnType<typeof createFrame>;
   private galleryGroup!: Group;
   private hintDots: Mesh[] = [];
+  private film!: Film;
+  private filmStarted = false;
   private idle = 0;
   private galleryItems: { group: Group; target: WebGLRenderTarget }[] = [];
 
@@ -268,7 +270,7 @@ export class BluefoldSystem extends createSystem({
       }),
     );
 
-    installFilmCaptions(this.camera);
+    this.film = installFilmCaptions(this.camera);
     this.baker.bake(this.renderer, this.targetTarget, this.target, 1);
     this.rebuildGallery();
     this.updateTargetLabel();
@@ -416,6 +418,7 @@ export class BluefoldSystem extends createSystem({
     this.knots.push(knot);
     this.layoutKnots();
     this.sfx.tie();
+    this.film.cue('tie');
     this.refreshHandles();
   }
 
@@ -436,6 +439,7 @@ export class BluefoldSystem extends createSystem({
         this.knots.push(block);
         this.layoutKnots();
         this.sfx.tie();
+        this.film.cue('tie');
       }
     }
     this.refreshHandles();
@@ -448,6 +452,7 @@ export class BluefoldSystem extends createSystem({
     const option = this.handleSlots[slot];
     if (!option) return;
     this.foldAnim = { option, t: 0, goal: 0, held: true };
+    this.film.cue('fold');
     this.sfx.tick();
   }
 
@@ -467,6 +472,7 @@ export class BluefoldSystem extends createSystem({
     obj.getWorldPosition(this.v1);
     this.clothGroup.getWorldPosition(this.v2);
     this.liftOffset.copy(this.v2).sub(this.v1);
+    this.film.cue('lift');
   }
 
   private onLiftRelease(): void {
@@ -547,6 +553,20 @@ export class BluefoldSystem extends createSystem({
     }
     this.pulseHandles();
     this.updateHint(dt);
+    this.film.update(dt);
+    if (import.meta.env.DEV && !this.filmStarted && this.placedInXR) this.watchFilmStart();
+  }
+
+  /** Dev-only: the video's captions begin when the viewer looks up at today's cloth. */
+  private watchFilmStart(): void {
+    this.player.head.getWorldPosition(this.v1);
+    this.targetFrame.group.getWorldPosition(this.v2);
+    this.v2.sub(this.v1).normalize();
+    this.v3.set(0, 0, -1).applyQuaternion(this.player.head.getWorldQuaternion(this.q1));
+    if (this.v2.dot(this.v3) > Math.cos((12 * Math.PI) / 180)) {
+      this.filmStarted = true;
+      this.film.cue('start');
+    }
   }
 
   /** Trace the next expected gesture with guide dots after a few idle seconds. */
@@ -741,6 +761,7 @@ export class BluefoldSystem extends createSystem({
     this.label.mesh.visible = true;
     this.updateTargetLabel();
     this.sfx.reveal(stars);
+    this.film.cue('reveal');
     this.refreshHandles();
   }
 
@@ -890,6 +911,7 @@ export class BluefoldSystem extends createSystem({
       tab.position.copy(this.v1);
       tab.rotation.set(0, this.workspace.rotation.y + Math.PI / 4, Math.PI / 2);
       tab.visible = true;
+      this.film.cue('unfold');
     } else {
       tab.visible = false;
       tab.position.set(0, HIDDEN_Y, 0);
