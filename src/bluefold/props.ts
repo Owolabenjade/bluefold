@@ -205,3 +205,18 @@ export function createLabel(width: number, height: number): { mesh: Mesh; draw: 
   };
   return { mesh, draw };
 }
+
+/** Itajime clamp: a pair of small wooden blocks pressed onto the folded cloth. */
+export function createClampBlock(size = 0.04): Group {
+  const g = new Group();
+  const wood = new MeshStandardMaterial({ color: new Color('#a07b4f'), roughness: 0.75 });
+  const block = new Mesh(new BoxGeometry(size, 0.012, size), wood);
+  block.position.y = 0.006;
+  block.castShadow = true;
+  g.add(block);
+  const grain = new MeshStandardMaterial({ color: new Color('#7d5b37'), roughness: 0.8 });
+  const peg = new Mesh(new CylinderGeometry(0.004, 0.004, 0.012, 10), grain);
+  peg.position.y = 0.018;
+  g.add(peg);
+  return g;
+}

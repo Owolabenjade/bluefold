@@ -18,7 +18,7 @@ import {
 } from '@iwsdk/core';
 import { Sfx } from './audio.js';
 import { ClothMesh } from './cloth.js';
-import { ClothSurface, FoldHandle, LiftLoop, UnfoldTab } from './components.js';
+import { ClampTool, ClothSurface, FoldHandle, LiftLoop, UnfoldTab } from './components.js';
 import {
   centroid,
   cloneRecipe,
@@ -37,6 +37,7 @@ import {
 } from './fold.js';
 import { PatternBaker } from './pattern.js';
 import {
+  createClampBlock,
   createFrame,
   createLabel,
   createLiftLoop,
@@ -71,6 +72,7 @@ export class BluefoldSystem extends createSystem({
   heldFold: { required: [FoldHandle, Grabbed] },
   heldLift: { required: [LiftLoop, Grabbed] },
   heldUnfold: { required: [UnfoldTab, Grabbed] },
+  heldClamp: { required: [ClampTool, Grabbed] },
   planes: { required: [XRPlane] },
 }) {
   private sfx = new Sfx();
@@ -91,6 +93,7 @@ export class BluefoldSystem extends createSystem({
   private handleSlots: (FoldOption | null)[] = [];
   private liftEntity!: Entity;
   private unfoldEntity!: Entity;
+  private clampEntity!: Entity;
   private label!: { mesh: Mesh; draw: (s: string, sub?: string) => void };
   private targetFrame!: ReturnType<typeof createFrame>;
   private galleryGroup!: Group;
@@ -115,6 +118,7 @@ export class BluefoldSystem extends createSystem({
   private revealTime = 0;
   private placed = false;
   private placeAfter = 0;
+  private awayTime = 0;
   private box = new Box3();
   private boxB = new Box3();
   private placedInXR = false;
@@ -193,6 +197,12 @@ export class BluefoldSystem extends createSystem({
     this.unfoldEntity.addComponent(UnfoldTab);
     this.unfoldEntity.addComponent(OneHandGrabbable, { rotate: false, translate: true });
 
+    const clamp = createClampBlock();
+    clamp.name = 'clamp-block';
+    this.clampEntity = this.world.createTransformEntity(clamp, { persistent: true });
+    this.clampEntity.addComponent(ClampTool);
+    this.clampEntity.addComponent(OneHandGrabbable, { rotate: false, translate: true });
+
     this.label = createLabel(0.3, 0.06);
     this.label.mesh.position.set(0, 0.24, -0.28);
     this.workspace.add(this.label.mesh);
@@ -226,6 +236,10 @@ export class BluefoldSystem extends createSystem({
     this.queries.heldFold.subscribe('disqualify', (e) => this.onFoldRelease(e));
     this.queries.heldLift.subscribe('qualify', () => this.onLiftGrab());
     this.queries.heldLift.subscribe('disqualify', () => this.onLiftRelease());
+    this.queries.heldClamp.subscribe('qualify', () => {
+      this.idle = 0;
+    });
+    this.queries.heldClamp.subscribe('disqualify', () => this.onClampRelease());
     this.queries.heldUnfold.subscribe('qualify', () => this.onUnfoldGrab());
     this.queries.heldUnfold.subscribe('disqualify', () => this.onUnfoldRelease());
 
@@ -353,9 +367,20 @@ export class BluefoldSystem extends createSystem({
     this.workspace.getWorldPosition(this.v2);
     const flat = Math.hypot(this.v1.x - this.v2.x, this.v1.z - this.v2.z);
     const drop = this.v1.y - this.v2.y;
-    if (flat > 0.95 || drop < 0.25 || drop > 0.95) {
-      this.placed = false;
-      this.placeAfter = this.clock + 0.6;
+    const held =
+      this.queries.heldFold.entities.size + this.queries.heldLift.entities.size +
+      this.queries.heldUnfold.entities.size + this.queries.heldClamp.entities.size;
+    // Only a sustained, large change (sitting down, walking away) moves the
+    // workspace; leaning in to reach the cloth must not.
+    if (held === 0 && (flat > 1.3 || drop < 0.05 || drop > 1.15)) {
+      this.awayTime += 1 / 72;
+      if (this.awayTime > 1.5) {
+        this.awayTime = 0;
+        this.placed = false;
+        this.placeAfter = this.clock + 0.3;
+      }
+    } else {
+      this.awayTime = 0;
     }
   }
 
@@ -388,6 +413,28 @@ export class BluefoldSystem extends createSystem({
     this.knots.push(knot);
     this.layoutKnots();
     this.sfx.tie();
+    this.refreshHandles();
+  }
+
+  /** Dropping the clamp block on the bundle presses a square resist through every layer. */
+  private onClampRelease(): void {
+    this.lastGrabEnd = this.clock;
+    const r = this.recipe;
+    const obj = this.clampEntity.object3D!;
+    if (this.phase === 'fold' && !this.foldAnim && r.dips === 0 && r.ties.length < MAX_TIES) {
+      obj.getWorldPosition(this.v1);
+      const local = this.clothGroup.worldToLocal(this.v1);
+      const outline = outlineAfter(r.folds);
+      const top = ClothMesh.topHeight(r.folds.length);
+      if (local.y < top + 0.09 && pointInConvex({ x: local.x, z: local.z }, outline)) {
+        r.ties.push({ x: local.x, z: local.z, r: 0.02, kind: 1, stage: r.folds.length });
+        const block = createClampBlock();
+        this.clothGroup.add(block);
+        this.knots.push(block);
+        this.layoutKnots();
+        this.sfx.tie();
+      }
+    }
     this.refreshHandles();
   }
 
@@ -798,6 +845,20 @@ export class BluefoldSystem extends createSystem({
       this.clothGroup.localToWorld(this.v1);
       obj.position.copy(this.v1);
       obj.rotation.set(0, this.workspace.rotation.y + Math.atan2(f.nx, f.nz) + Math.PI / 2, Math.PI / 2);
+    }
+
+    // Clamp block rests beside the cloth until the first dip.
+    const clampObj = this.clampEntity.object3D!;
+    const canClamp = this.phase === 'fold' && !this.foldAnim && this.recipe.dips === 0 && this.recipe.ties.length < MAX_TIES;
+    if (canClamp && this.queries.heldClamp.entities.size === 0) {
+      this.v1.set(-0.3, 0.0, 0.06);
+      this.workspace.localToWorld(this.v1);
+      clampObj.position.copy(this.v1);
+      clampObj.rotation.set(0, this.workspace.rotation.y, 0);
+      clampObj.visible = true;
+    } else if (!canClamp) {
+      clampObj.visible = false;
+      clampObj.position.set(0, HIDDEN_Y, 0);
     }
 
     // Lift loop: once there is something to dye, and only between dips.

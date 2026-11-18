@@ -81,6 +81,7 @@ void main() {
       float kind = t.w - stage * 2.0;
       vec2 dv = p - t.xy;
       float d = length(dv);
+      if (d > t.z * 3.2) continue; // far from this resist: skip the noise
       float n = fbm(dv * 90.0 + float(j) * 7.13);
       if (kind < 0.5) {
         float core = 1.0 - smoothstep(t.z * 0.5, t.z * 0.95, d + (n - 0.5) * 0.006);

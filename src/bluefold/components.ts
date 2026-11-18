@@ -13,3 +13,6 @@ export const UnfoldTab = createComponent('UnfoldTab', {});
 
 /** The cloth surface, which takes ties where the player pinches. */
 export const ClothSurface = createComponent('ClothSurface', {});
+
+/** The wooden clamp block the player drops onto the bundle. */
+export const ClampTool = createComponent('ClampTool', {});
