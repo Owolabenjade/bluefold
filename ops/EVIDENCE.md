@@ -75,3 +75,12 @@ Method: Screenshot shared by the human of their forum profile
 Result: Profile shows the flair "Start Member" and "Member since November 18, 2026".
 Label: OBSERVED (screenshot)
 Limits: Seen through the human's screenshot, not checked independently.
+
+## E-009: Entry submitted on Devpost
+Date (UTC): 2026-11-18T11:33Z
+Commit: 0b2d3cf
+Environment: Devpost, start-developer-competition-26.devpost.com
+Method: The human submitted the form and reported it in chat
+Result: Human reports "successfully submitted on Devpost" (Gaming / New Experience, Individual, IWSDK build path, hosted URL https://owolabenjade.github.io/bluefold/, video https://youtu.be/_0fn1PQe8d0).
+Label: OBSERVED by the human (reported); not checked by Claude
+Limits: No screenshot of the "Submitted" status was captured here.

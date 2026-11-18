@@ -7,7 +7,7 @@
 | I-002 | Tracer bullet: cloth, one fold, one tie, vat dip, unfold reveal | Claude | done | M1 | Works in IWER; typecheck and build pass | E-003 |
 | I-003 | GitHub repo and Pages (Actions) live | Claude (human approved creating it) | done | M1 | Public URL loads the build | E-004 |
 | I-004 | Apply to Meta VR Start (eligibility) | Human | done | M4 | "Start Member" flair visible on the developer forum | E-008 |
-| I-005 | Join the hackathon on Devpost; draft project "Bluefold" | Human | doing | M4 | Draft exists | |
+| I-005 | Join the hackathon on Devpost; draft project "Bluefold" | Human | done | M4 | Draft exists | |
 | I-006 | Fold types: half x/y, diagonal, accordion | Claude | todo | M2 | All animate and map into the pattern | |
 | I-007 | Clamp resist tool and multi-dip depth | Claude | todo | M2 | Visible in the pattern | |
 | I-008 | Table and wall placement from plane detection, with fallback | Claude | todo | M2 | Works in the IWER living room and with planes off | |
