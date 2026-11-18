@@ -57,3 +57,12 @@ Method: `git ls-files | grep -iE '\.(mp3|wav|ogg|glb|gltf|jpg|jpeg|ktx2|hdr|png)
 Result: Only docs/*.png screenshots of Bluefold itself are tracked. Sounds are oscillators and filtered noise in audio.ts; all geometry is procedural Three.js primitives in props.ts and cloth.ts. The starter's chime.mp3 was removed.
 Label: OBSERVED
 Limits: Does not cover npm dependencies (IWSDK, Three.js, UIKit), which are MIT or Apache licensed packages.
+
+## E-007: Demo video recorded and public on YouTube
+Date (UTC): 2026-11-18T09:53Z
+Commit: b30d28c
+Environment: Recorded by the human with Xbox Game Bar on Windows 11 from the managed Chromium window (IWER, Quest 3 profile) while scratch film.mjs drove the hands; captions are dev-only and advance on game events
+Method: file `Videos\Captures\Bluefold 2026-11-18 10-31-55.mp4` (duration read from Windows file properties); YouTube oEmbed request for https://youtu.be/_0fn1PQe8d0 without login
+Result: Local file 1:40, 92.3 MB; recording window 09:31:55Z to 09:33:35Z matches the scripted run log 09:31:52Z to 09:33:37Z. oEmbed returns HTTP 200 with title "Bluefold", so the video is public.
+Label: OBSERVED
+Limits: Claude did not watch the video; the human reviewed it. Audio content not checked.

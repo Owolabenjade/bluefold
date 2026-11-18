@@ -15,7 +15,7 @@ Gaming / New Experience
 ## Links
 - Project (IWSDK / WebXR, hosted): https://owolabenjade.github.io/bluefold/
 - Code: https://github.com/Owolabenjade/bluefold
-- Video (YouTube, public): VIDEO_LINK
+- Video (YouTube, public, 1:40): https://youtu.be/_0fn1PQe8d0
 
 ## Description (under 500 words)
 

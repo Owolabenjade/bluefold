@@ -1,6 +1,6 @@
 # Bluefold: fold, tie and dip cloth with bare hands, then unfold the indigo pattern you made
 
-**Play:** https://owolabenjade.github.io/bluefold/ (open in the Meta Quest Browser) · **Video:** VIDEO_LINK · Meta VR Start Developer Competition 2026, Gaming / New Experience
+**Play:** https://owolabenjade.github.io/bluefold/ (open in the Meta Quest Browser) · **Video:** https://youtu.be/_0fn1PQe8d0 · Meta VR Start Developer Competition 2026, Gaming / New Experience
 
 ![The unfolded cloth: one tie and one clamp, mirrored four times by two folds, scored against today's cloth](docs/reveal.png)
 
