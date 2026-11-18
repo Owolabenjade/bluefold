@@ -23,7 +23,7 @@
   }
 
   .eyebrow:dark {
-    color: #f5d90a;
+    color: #9db8ff;
   }
 
   .heading {
@@ -60,16 +60,16 @@
 </style>
 <Panel class="panel-root">
   <div class="panel-content">
-    <div class="eyebrow">IMMERSIVE WEB SDK</div>
-    <div class="heading">Hello, Immersive Web!</div>
-    <div class="body">Try each station around you,</div>
-    <div class="body">then make this scene your own.</div>
+    <div class="eyebrow">INDIGO RESIST-DYE</div>
+    <div class="heading">Bluefold</div>
+    <div class="body">Fold, tie and dip cloth with your hands,</div>
+    <div class="body">then unfold the pattern you made.</div>
   </div>
   <Button id="xr-button" class="button">
     <ButtonIcon>
       <RectangleGoggles></RectangleGoggles>
     </ButtonIcon>
-    <ButtonLabel class="button-label">Enter XR</ButtonLabel>
+    <ButtonLabel class="button-label">Enter mixed reality</ButtonLabel>
   </Button>
   <Button id="exit-button" class="button" style="display: none">
     <ButtonIcon>
