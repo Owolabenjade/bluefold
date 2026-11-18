@@ -39,3 +39,21 @@ Method: Pages workflow run 44268746961; `curl` of https://owolabenjade.github.io
 Result: Workflow success. Page 200; main bundle 200 (2,432,920 bytes); ui/welcome.uikitml 200; scenes/main.iwsdk.scene.json 200. Chrome renders the welcome panel, today's cloth and the workspace; console shows no errors (one ANGLE shader precision warning).
 Label: OBSERVED
 Limits: Desktop only; the immersive session on a Quest Browser is not verified.
+
+## E-005: Dress rehearsal of the full loop with two folds, a tie and a clamp
+Date (UTC): 2026-11-18T09:10Z to 09:12Z
+Commit: 1e77da0 (layout fix applied after the run)
+Environment: IWER 2.8 metaQuest3, sunlit_living_room, hand input, seated head pose (-0.95, 1.2, 2.08); scripted with scratch film.mjs (animate-to and set-select-value)
+Method: two folds (half x, then half z), ray-pinch tie, clamp block dropped on the bundle, carried to the vat, unfolded; screenshots after each step
+Result: docs/tied.png (quarter bundle with knot and clamp), docs/dyed.png (indigo bundle with tie sunburst and clamp square), docs/reveal.png (unfolded cloth with four mirrored sunbursts and four clamp squares, label "68% match"). The recorded film run at 09:17:49Z to 09:19:21Z repeated the same loop in 92 seconds.
+Label: OBSERVED
+Limits: Emulator; scripted hand motion, not a person.
+
+## E-006: Repository contains no third-party art or audio
+Date (UTC): 2026-11-18T09:30Z
+Commit: ff27aed
+Environment: local clone
+Method: `git ls-files | grep -iE '\.(mp3|wav|ogg|glb|gltf|jpg|jpeg|ktx2|hdr|png)$'`; read src/bluefold/audio.ts and props.ts
+Result: Only docs/*.png screenshots of Bluefold itself are tracked. Sounds are oscillators and filtered noise in audio.ts; all geometry is procedural Three.js primitives in props.ts and cloth.ts. The starter's chime.mp3 was removed.
+Label: OBSERVED
+Limits: Does not cover npm dependencies (IWSDK, Three.js, UIKit), which are MIT or Apache licensed packages.

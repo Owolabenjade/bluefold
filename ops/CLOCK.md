@@ -25,4 +25,5 @@ Agents do not know the time. Read it from the system (`date -u`) at every boot.
 ## Session log
 | Start (UTC) | End (UTC) | Who | Did | Next |
 |---|---|---|---|---|
-| 2026-11-17T23:37Z | | Claude | Research, Gate A (Bluefold), Gate B, scaffold, foundation | Tracer bullet |
+| 2026-11-17T23:37Z | 2026-11-18T00:55Z | Claude | Research, Gate A (Bluefold), Gate B, scaffold, foundation, tracer bullet in emulator | Deploy |
+| 2026-11-18T08:14Z | 2026-11-18T09:40Z | Claude | Machine resumed after ~7 h asleep; repo created and deployed, clamp, hints, gallery, captions, video recorded, README and Devpost draft | Video link, submit |

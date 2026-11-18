@@ -1,24 +1,28 @@
 # STATE
 
-Updated (UTC): 2026-11-18T00:10Z
-Verified at commit: none
-Phase: build (tracer bullet)
+Updated (UTC): 2026-11-18T09:40Z
+Verified at commit: ff27aed
+Phase: ship (README, video, submission)
 
 ## Works now
-- The IWSDK 1.1.0 MR starter scaffolds and builds here (E-001).
+- Full loop with hands in the emulator: fold (half, quarter, diagonal), tie, clamp, dip, oxidise, unfold, score, gallery, streak (E-003, E-005).
+- Table placement from plane detection with a virtual-table fallback (E-003).
+- Public build at https://owolabenjade.github.io/bluefold/ deploys from main via GitHub Actions (E-004).
+- README, LICENSE, Devpost draft (ops/SUBMISSION.md), claims ledger; presubmit 0 errors.
 
 ## Broken or known issues
-- The starter scene still contains the template robot and panels.
+- Not tested on a physical Quest (no headset). Disclosed everywhere (C-009).
+- Accordion folds and wall placement of today's cloth were cut; the target hangs above the table.
 
 ## In progress
-- I-002 tracer bullet (Claude).
+- Video: recorded by the human with Game Bar at 2026-11-18T09:17Z; trim and YouTube upload pending.
 
 ## Next action
-1. Replace the starter scene with the cloth, table and vat; one fold, one tie, dip, unfold.
+1. Human: upload the video (public, under 3:00), share the link; Claude adds it to README and SUBMISSION.
+2. Human: fill Devpost from ops/SUBMISSION.md and submit before 18:00 UTC; confirm the target launch date.
 
 ## Blockers and waiting on
-- Human: Start membership application (I-004), Devpost join (I-005), GitHub repo creation with Pages source = GitHub Actions (I-003).
+- Human: Meta VR Start membership application (eligibility, I-004).
 
 ## Open unknowns
-- How hand pinch and plane detection behave in IWER 2.8 for this app (verify in the tracer bullet).
-- Real Quest 3 hand-tracking behaviour: cannot be verified without a headset.
+- Real Quest hand-tracking feel, Quest Browser plane permission flow, on-device frame rate.

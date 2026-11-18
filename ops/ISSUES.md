@@ -1,6 +1,4 @@
-# ISSUES
-
-Status: todo | doing | blocked | done | parked | cut
+ doing (README and Devpost text drafted; video recorded, upload pending)   |||||||| doing | blocked | done | parked | cut
 `done` requires an evidence ID. One `doing` item per owner.
 
 | ID | Title | Owner | Status | Milestone | Done when | Evidence |
